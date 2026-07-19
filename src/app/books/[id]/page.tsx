@@ -4,6 +4,7 @@ import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { LibraryHeader } from "@/components/library-header";
 import { ApiError, getBook } from "@/services/api";
+import { BorrowBook } from "@/features/borrowing/borrow-book";
 import type { Book } from "@/types/book";
 
 export default function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -58,6 +59,10 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                 <Detail label="Added to catalogue" value={formatDate(book.createdAt)} />
                 <Detail label="Last updated" value={formatDate(book.updatedAt)} />
               </dl>
+              <BorrowBook
+                book={book}
+                onBorrowed={() => setBook((current) => current ? { ...current, availabilityStatus: "Borrowed" } : current)}
+              />
             </div>
           </article>
         )}

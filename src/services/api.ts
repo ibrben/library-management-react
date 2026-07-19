@@ -1,5 +1,6 @@
 import type { LoginRequest, LoginResponse } from "@/types/auth";
 import type { Book, BookPage, BookQuery } from "@/types/book";
+import type { BorrowBookRequest, BorrowTransaction } from "@/types/borrowing";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
@@ -28,10 +29,7 @@ async function getErrorMessage(response: Response, fallback: string) {
 }
 
 async function apiGet<T>(path: string): Promise<T> {
-  const token =
-    typeof window === "undefined"
-      ? null
-      : window.localStorage.getItem("accessToken");
+  const token = getValidAccessToken();
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       Accept: "application/json",
@@ -45,6 +43,54 @@ async function apiGet<T>(path: string): Promise<T> {
       await getErrorMessage(response, fallback),
       response.status,
     );
+  }
+
+  return (await response.json()) as T;
+}
+
+function clearStoredSession() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem("accessToken");
+  window.localStorage.removeItem("tokenExpiresAt");
+  window.localStorage.removeItem("user");
+}
+
+export function getValidAccessToken(): string | null {
+  if (typeof window === "undefined") return null;
+
+  const token = window.localStorage.getItem("accessToken");
+  const expiresAt = window.localStorage.getItem("tokenExpiresAt");
+  if (!token) return null;
+
+  if (expiresAt) {
+    const expiry = new Date(expiresAt).getTime();
+    if (!Number.isFinite(expiry) || expiry <= Date.now()) {
+      clearStoredSession();
+      return null;
+    }
+  }
+
+  return token;
+}
+
+async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const token = getValidAccessToken();
+  if (!token) throw new ApiError("Please sign in to continue.", 401);
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) clearStoredSession();
+    const fallback = `Request failed with status ${response.status}`;
+    throw new ApiError(await getErrorMessage(response, fallback), response.status);
   }
 
   return (await response.json()) as T;
@@ -99,4 +145,9 @@ export async function getBooks(query: BookQuery = {}): Promise<BookPage> {
 
 export function getBook(id: string): Promise<Book> {
   return apiGet<Book>(`/api/books/${encodeURIComponent(id)}`);
+}
+
+export function borrowBook(bookId: string): Promise<BorrowTransaction> {
+  const request: BorrowBookRequest = { bookId };
+  return apiPost<BorrowTransaction>("/api/borrowings", request);
 }

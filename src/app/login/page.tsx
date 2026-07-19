@@ -20,15 +20,19 @@ export default function LoginPage() {
 
     try {
       const session = await Login({
-        UsernameOrEmail: usernameOrEmail.trim(),
-        Password: password,
+        usernameOrEmail: usernameOrEmail.trim(),
+        password,
       });
 
       localStorage.setItem("accessToken", session.accessToken);
       localStorage.setItem("tokenExpiresAt", session.expiresAt);
       localStorage.setItem("user", JSON.stringify(session.user));
 
-      router.push("/dashboard");
+      const requestedRoute = new URLSearchParams(window.location.search).get("returnTo");
+      const destination = requestedRoute?.startsWith("/") && !requestedRoute.startsWith("//")
+        ? requestedRoute
+        : "/books";
+      router.push(destination);
     } catch (error) {
       if (error instanceof ApiError) {
         setErrorMessage(

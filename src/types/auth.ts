@@ -1,6 +1,6 @@
 export interface LoginRequest {
-  UsernameOrEmail: string;
-  Password: string;
+  usernameOrEmail: string;
+  password: string;
 }
 
 export interface AuthenticatedUser {
