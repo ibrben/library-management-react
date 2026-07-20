@@ -31,7 +31,7 @@ export default function LoginPage() {
       const requestedRoute = new URLSearchParams(window.location.search).get("returnTo");
       const destination = requestedRoute?.startsWith("/") && !requestedRoute.startsWith("//")
         ? requestedRoute
-        : "/books";
+        : "/dashboard";
       router.push(destination);
     } catch (error) {
       if (error instanceof ApiError) {

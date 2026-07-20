@@ -9,7 +9,7 @@ export interface AuthenticatedUser {
   email: string;
   firstName: string;
   lastName: string;
-  role: string;
+  role: UserRole;
 }
 
 export interface LoginResponse {
@@ -17,3 +17,10 @@ export interface LoginResponse {
   expiresAt: string;
   user: AuthenticatedUser;
 }
+
+export interface EndUserListItem {
+  id: string;
+  username: string | null;
+}
+
+export type UserRole = "Administrator" | "Librarian" | "EndUser";

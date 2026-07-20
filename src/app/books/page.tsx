@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { LibraryHeader } from "@/components/library-header";
-import { ApiError, getBooks } from "@/services/api";
+import { ApiError, getBooks, getStoredUser } from "@/services/api";
 import type { Book, BookAvailabilityStatus } from "@/types/book";
 
 const PAGE_SIZE = 12;
 
 export default function BooksPage() {
+  const router = useRouter();
   const [books, setBooks] = useState<Book[]>([]);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -44,10 +46,14 @@ export default function BooksPage() {
   }, [activeSearch, availability, page]);
 
   useEffect(() => {
+    if (!getStoredUser()) {
+      router.replace("/login?returnTo=%2Fbooks");
+      return;
+    }
     // This effect intentionally starts the remote synchronization for its query.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadBooks();
-  }, [loadBooks]);
+  }, [loadBooks, router]);
 
   function submitSearch(event: FormEvent) {
     event.preventDefault();

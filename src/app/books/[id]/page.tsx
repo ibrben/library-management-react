@@ -3,17 +3,23 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { LibraryHeader } from "@/components/library-header";
-import { ApiError, getBook } from "@/services/api";
+import { ApiError, getBook, getStoredUser } from "@/services/api";
+import { useRouter } from "next/navigation";
 import { BorrowBook } from "@/features/borrowing/borrow-book";
 import type { Book } from "@/types/book";
 
 export default function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!getStoredUser()) {
+      router.replace(`/login?returnTo=${encodeURIComponent(`/books/${id}`)}`);
+      return;
+    }
     let active = true;
     async function loadBook() {
       try {
@@ -28,7 +34,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     }
     void loadBook();
     return () => { active = false; };
-  }, [id]);
+  }, [id, router]);
 
   return (
     <div className="min-h-screen bg-[#f7f5f1] text-[#27312d]">

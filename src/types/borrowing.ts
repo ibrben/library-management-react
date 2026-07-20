@@ -18,3 +18,18 @@ export interface BorrowTransaction {
   returnDate: string | null;
   status: BorrowStatus;
 }
+
+export interface TransactionPage {
+  items: BorrowTransaction[] | null;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+}
+
+export interface BorrowingQuery {
+  userId?: string;
+  status?: BorrowStatus;
+  page?: number;
+  pageSize?: number;
+}

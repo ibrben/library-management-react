@@ -1,6 +1,6 @@
-import type { LoginRequest, LoginResponse } from "@/types/auth";
+import type { AuthenticatedUser, EndUserListItem, LoginRequest, LoginResponse } from "@/types/auth";
 import type { Book, BookPage, BookQuery } from "@/types/book";
-import type { BorrowBookRequest, BorrowTransaction } from "@/types/borrowing";
+import type { BorrowBookRequest, BorrowingQuery, BorrowTransaction, TransactionPage } from "@/types/borrowing";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
@@ -38,6 +38,7 @@ async function apiGet<T>(path: string): Promise<T> {
   });
 
   if (!response.ok) {
+    if (response.status === 401) clearStoredSession();
     const fallback = `Request failed with status ${response.status}`;
     throw new ApiError(
       await getErrorMessage(response, fallback),
@@ -48,7 +49,7 @@ async function apiGet<T>(path: string): Promise<T> {
   return (await response.json()) as T;
 }
 
-function clearStoredSession() {
+export function clearStoredSession() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem("accessToken");
   window.localStorage.removeItem("tokenExpiresAt");
@@ -73,7 +74,21 @@ export function getValidAccessToken(): string | null {
   return token;
 }
 
-async function apiPost<T>(path: string, body: unknown): Promise<T> {
+export function getStoredUser(): AuthenticatedUser | null {
+  if (!getValidAccessToken() || typeof window === "undefined") return null;
+  const storedUser = window.localStorage.getItem("user");
+  if (!storedUser) return null;
+
+  try {
+    const user = JSON.parse(storedUser) as AuthenticatedUser;
+    return user?.id && user?.role ? user : null;
+  } catch {
+    clearStoredSession();
+    return null;
+  }
+}
+
+async function apiPost<T>(path: string, body?: unknown): Promise<T> {
   const token = getValidAccessToken();
   if (!token) throw new ApiError("Please sign in to continue.", 401);
 
@@ -82,9 +97,9 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
     headers: {
       Accept: "application/json",
       Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
+      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
     },
-    body: JSON.stringify(body),
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   });
 
   if (!response.ok) {
@@ -150,4 +165,65 @@ export function getBook(id: string): Promise<Book> {
 export function borrowBook(bookId: string): Promise<BorrowTransaction> {
   const request: BorrowBookRequest = { bookId };
   return apiPost<BorrowTransaction>("/api/borrowings", request);
+}
+
+export function borrowBookForUser(bookId: string, userId: string, dueDate?: string): Promise<BorrowTransaction> {
+  const request: BorrowBookRequest = { bookId, userId, dueDate: dueDate || null };
+  return apiPost<BorrowTransaction>("/api/borrowings", request);
+}
+
+export function returnBorrowing(transactionId: string): Promise<BorrowTransaction> {
+  return apiPost<BorrowTransaction>(`/api/borrowings/${encodeURIComponent(transactionId)}/return`);
+}
+
+function borrowingParameters(query: BorrowingQuery) {
+  const parameters = new URLSearchParams();
+  if (query.userId) parameters.set("UserId", query.userId);
+  if (query.status) parameters.set("Status", query.status);
+  if (query.page) parameters.set("Page", String(query.page));
+  if (query.pageSize) parameters.set("PageSize", String(query.pageSize));
+  return parameters.size ? `?${parameters.toString()}` : "";
+}
+
+export function getBorrowings(query: BorrowingQuery = {}): Promise<TransactionPage> {
+  return apiGet<TransactionPage>(`/api/borrowings${borrowingParameters(query)}`);
+}
+
+export function getMyBorrowings(query: Omit<BorrowingQuery, "userId"> = {}): Promise<TransactionPage> {
+  return apiGet<TransactionPage>(`/api/borrowings/mine${borrowingParameters(query)}`);
+}
+
+export async function getEndUsers(): Promise<EndUserListItem[]> {
+  const response = await apiGet<unknown>("/api/users/end-users");
+  return normalizeEndUsers(response);
+}
+
+function normalizeEndUsers(response: unknown): EndUserListItem[] {
+  const source = Array.isArray(response)
+    ? response
+    : isRecord(response) && Array.isArray(response.items)
+      ? response.items
+      : isRecord(response) && Array.isArray(response.$values)
+        ? response.$values
+        : [];
+
+  return source.flatMap((item) => {
+    if (!isRecord(item)) return [];
+    const id = typeof item.id === "string"
+      ? item.id
+      : typeof item.Id === "string"
+        ? item.Id
+        : "";
+    if (!id) return [];
+    const username = typeof item.username === "string"
+      ? item.username
+      : typeof item.Username === "string"
+        ? item.Username
+        : null;
+    return [{ id, username }];
+  });
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }

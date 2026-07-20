@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ApiError, borrowBook, getValidAccessToken } from "@/services/api";
+import { ApiError, borrowBook, getStoredUser, getValidAccessToken } from "@/services/api";
 import type { Book } from "@/types/book";
 import type { BorrowTransaction } from "@/types/borrowing";
 
@@ -21,6 +21,10 @@ export function BorrowBook({ book, onBorrowed }: BorrowBookProps) {
   function beginBorrow() {
     if (!getValidAccessToken()) {
       router.push(`/login?returnTo=${encodeURIComponent(`/books/${book.id}`)}`);
+      return;
+    }
+    if (getStoredUser()?.role === "Librarian") {
+      router.push(`/inventory?bookId=${encodeURIComponent(book.id)}`);
       return;
     }
     setError("");
