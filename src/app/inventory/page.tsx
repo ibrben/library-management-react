@@ -79,7 +79,7 @@ export default function InventoryPage() {
   useEffect(() => {
     const user = getStoredUser();
     if (!user) { router.replace("/login?returnTo=%2Finventory"); return; }
-    if (user.role !== "Librarian") { router.replace("/dashboard"); return; }
+    if (user.role !== "Administrator" && user.role !== "Librarian") { router.replace("/dashboard"); return; }
     const selectedBook = new URLSearchParams(window.location.search).get("bookId");
     // Restore a catalogue selection after the role guard has passed.
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -120,7 +120,7 @@ export default function InventoryPage() {
   return <div className="min-h-screen bg-[#f9f8f6] text-[#332c27]">
     <LibraryHeader active="inventory" />
     <main className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14">
-      <header className="border-b border-[#d9cfc7] pb-8"><p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.24em] text-[#9a8268]">Librarian workspace</p><h1 className="font-serif text-4xl sm:text-5xl">Inventory &amp; circulation</h1><p className="mt-3 text-sm text-[#6f6258]">Review availability and process borrowing or returns for library members.</p></header>
+      <header className="border-b border-[#d9cfc7] pb-8"><p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.24em] text-[#9a8268]">Staff workspace</p><h1 className="font-serif text-4xl sm:text-5xl">Inventory &amp; circulation</h1><p className="mt-3 text-sm text-[#6f6258]">Review availability and process borrowing or returns for library members.</p></header>
       <section aria-label="Inventory overview" className="mt-8 grid gap-px border border-[#d9cfc7] bg-[#d9cfc7] sm:grid-cols-3"><Metric label="Catalogue volumes" value={totalBooks} /><Metric label="Available now" value={availableBooks} /><Metric label="Active loans" value={transactions.length} /></section>
       {error ? <p role="alert" className="mt-7 border-l-2 border-[#9b4c43] bg-white px-5 py-4 text-sm text-[#7a3832]">{error}</p> : null}
       {success ? <p role="status" className="mt-7 border-l-2 border-[#58705d] bg-[#edf2ed] px-5 py-4 text-sm text-[#354d3a]">{success}</p> : null}

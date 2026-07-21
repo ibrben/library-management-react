@@ -15,6 +15,7 @@ function getRole(): UserRole | null {
 
 export function LibraryHeader({ active = "books" }: { active?: "books" | "dashboard" | "history" | "inventory" }) {
   const role = useSyncExternalStore(subscribe, getRole, () => null);
+  const canManageInventory = role === "Administrator" || role === "Librarian";
   return (
     <header className="border-b border-[#ded8cf] bg-[#f7f5f1]">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
@@ -29,7 +30,7 @@ export function LibraryHeader({ active = "books" }: { active?: "books" | "dashbo
           <Link href="/dashboard" className={`pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#27312d] ${active === "dashboard" ? "border-b-2 border-[#a8734a]" : "border-b-2 border-transparent"}`}>Dashboard</Link>
           <Link href="/books" className={`pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#27312d] ${active === "books" ? "border-b-2 border-[#a8734a]" : "border-b-2 border-transparent"}`}>Books</Link>
           {role === "EndUser" ? <Link href="/history" className={`pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#27312d] ${active === "history" ? "border-b-2 border-[#a8734a]" : "border-b-2 border-transparent"}`}>History</Link> : null}
-          {role === "Librarian" ? <Link href="/inventory" className={`pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#27312d] ${active === "inventory" ? "border-b-2 border-[#a8734a]" : "border-b-2 border-transparent"}`}>Inventory</Link> : null}
+          {canManageInventory ? <Link href="/inventory" className={`pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#27312d] ${active === "inventory" ? "border-b-2 border-[#a8734a]" : "border-b-2 border-transparent"}`}>Inventory</Link> : null}
         </nav>
       </div>
     </header>

@@ -113,7 +113,7 @@ export default function DashboardPage() {
                 <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#9a8268]">Quick actions</p>
                 <h2 className="mt-2 font-serif text-2xl">Your workspace</h2>
                 <div className="mt-6 space-y-3">
-                  <Action href={user.role === "Librarian" ? "/inventory" : "/books"} title={user.role === "EndUser" ? "Browse the collection" : user.role === "Librarian" ? "Open inventory system" : "Open book inventory"} description={user.role === "EndUser" ? "Find your next book" : "Review catalogue and availability"} />
+                  <Action href={user.role === "EndUser" ? "/books" : "/inventory"} title={user.role === "EndUser" ? "Browse the collection" : "Open inventory system"} description={user.role === "EndUser" ? "Find your next book" : "Review catalogue, circulation, borrowing, and returns"} />
                   {user.role === "Administrator" ? <Responsibility title="Administration" description="Full access to inventory, circulation, and member operations." /> : null}
                   {user.role === "Librarian" ? <Responsibility title="Circulation desk" description="Manage inventory, borrowing, returns, and reader service." /> : null}
                   {user.role === "EndUser" ? <Action href="/history" title="Borrow history" description="Review or return books on your account" /> : null}

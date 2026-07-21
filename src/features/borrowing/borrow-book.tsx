@@ -23,7 +23,8 @@ export function BorrowBook({ book, onBorrowed }: BorrowBookProps) {
       router.push(`/login?returnTo=${encodeURIComponent(`/books/${book.id}`)}`);
       return;
     }
-    if (getStoredUser()?.role === "Librarian") {
+    const role = getStoredUser()?.role;
+    if (role === "Administrator" || role === "Librarian") {
       router.push(`/inventory?bookId=${encodeURIComponent(book.id)}`);
       return;
     }
