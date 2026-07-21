@@ -29,7 +29,7 @@ export function LibraryHeader({ active = "books" }: { active?: "books" | "dashbo
         <nav aria-label="Primary navigation" className="flex items-center gap-5 sm:gap-7">
           <Link href="/dashboard" className={`pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#27312d] ${active === "dashboard" ? "border-b-2 border-[#a8734a]" : "border-b-2 border-transparent"}`}>Dashboard</Link>
           <Link href="/books" className={`pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#27312d] ${active === "books" ? "border-b-2 border-[#a8734a]" : "border-b-2 border-transparent"}`}>Books</Link>
-          {role === "EndUser" ? <Link href="/history" className={`pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#27312d] ${active === "history" ? "border-b-2 border-[#a8734a]" : "border-b-2 border-transparent"}`}>History</Link> : null}
+          {role ? <Link href="/history" className={`pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#27312d] ${active === "history" ? "border-b-2 border-[#a8734a]" : "border-b-2 border-transparent"}`}>History</Link> : null}
           {canManageInventory ? <Link href="/inventory" className={`pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#27312d] ${active === "inventory" ? "border-b-2 border-[#a8734a]" : "border-b-2 border-transparent"}`}>Inventory</Link> : null}
         </nav>
       </div>
